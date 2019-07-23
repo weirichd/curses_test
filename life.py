@@ -17,6 +17,8 @@ def update_life(X):
 
 def board_run(stdscr):
     stdscr.nodelay(True)
+    curses.init_pair(1, curses.COLOR_BLACK, curses.COLOR_RED)
+    curses.init_pair(2, curses.COLOR_BLACK, curses.COLOR_WHITE)
 
     board = np.random.randint(0, 2, size=(10, 10))
 
@@ -33,9 +35,13 @@ def board_run(stdscr):
         # Render
         stdscr.clear()
 
+        stdscr.addstr(13, 5, "Game of Life. Press Q to quit")
+
         for i in np.ndindex(board.shape):
-            stdscr.addstr(*i, "{}".format(' ' if board[i] == 0 else '#'))
-            stdscr.refresh()
+            alive = (board[i] == 1)
+            stdscr.addstr(*i, ' ', curses.color_pair(1 if alive else 2))
+
+        stdscr.refresh()
 
         # Sleep
         time.sleep(1)
