@@ -15,7 +15,7 @@ def update_life(X):
     return (n_neighbors == 3) | (X & (n_neighbors == 2))
 
 
-def maze_run(stdscr):
+def board_run(stdscr):
     stdscr.nodelay(True)
 
     board = np.random.randint(0, 2, size=(10, 10))
@@ -28,13 +28,13 @@ def maze_run(stdscr):
         if c == ord('q'):
             go = False
 
-        board = update_life(maze)
+        board = update_life(board)
 
         # Render
         stdscr.clear()
 
-        for i in np.ndindex(maze.shape):
-            stdscr.addstr(*i, "{}".format(' ' if maze[i] == 0 else '#'))
+        for i in np.ndindex(board.shape):
+            stdscr.addstr(*i, "{}".format(' ' if board[i] == 0 else '#'))
             stdscr.refresh()
 
         # Sleep
@@ -42,4 +42,4 @@ def maze_run(stdscr):
 
 
 if __name__ == '__main__':
-    curses.wrapper(maze_run)
+    curses.wrapper(board_run)
