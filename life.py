@@ -15,6 +15,13 @@ def update_life(X):
     return (n_neighbors == 3) | (X & (n_neighbors == 2))
 
 
+def render_board(board, window):
+    for i in np.ndindex(board.shape):
+        alive = (board[i] == 1)
+        screen_pos = i[0] + 3, i[1] + 5
+        window.addstr(*screen_pos, ' ', curses.color_pair(1 if alive else 2))
+
+
 def board_run(stdscr):
     stdscr.nodelay(True)
     curses.init_pair(1, curses.COLOR_BLACK, curses.COLOR_RED)
@@ -35,11 +42,9 @@ def board_run(stdscr):
         # Render
         stdscr.clear()
 
-        stdscr.addstr(13, 5, "Game of Life. Press Q to quit")
+        stdscr.addstr(1, 5, "Game of Life. Press Q to quit")
 
-        for i in np.ndindex(board.shape):
-            alive = (board[i] == 1)
-            stdscr.addstr(*i, ' ', curses.color_pair(1 if alive else 2))
+        render_board(board, stdscr)
 
         stdscr.refresh()
 
