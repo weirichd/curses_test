@@ -16,9 +16,12 @@ def update_life(X):
 
 
 def render_board(board, window):
+
+    origin = 3, 5
+
     for i in np.ndindex(board.shape):
         alive = (board[i] == 1)
-        screen_pos = i[0] + 3, i[1] + 5
+        screen_pos = i[0] + origin[0], i[1] + origin[1]
         window.addstr(*screen_pos, ' ', curses.color_pair(1 if alive else 2))
 
 
@@ -27,7 +30,7 @@ def board_run(stdscr):
     curses.init_pair(1, curses.COLOR_BLACK, curses.COLOR_RED)
     curses.init_pair(2, curses.COLOR_BLACK, curses.COLOR_WHITE)
 
-    board = np.random.randint(0, 2, size=(10, 10))
+    board = np.random.randint(0, 2, size=(20, 20))
 
     go = True
 
@@ -49,7 +52,7 @@ def board_run(stdscr):
         stdscr.refresh()
 
         # Sleep
-        time.sleep(1)
+        time.sleep(.1)
 
 
 if __name__ == '__main__':
