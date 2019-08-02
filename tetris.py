@@ -105,6 +105,7 @@ def draw_debug(window, piece, player_x, player_y, rotation):
     piece_matrix = tetrominoes[piece][rotation]
     left_piece_edge = piece_matrix.nonzero()[1].min() + player_x
     right_piece_edge = piece_matrix.nonzero()[1].max() + player_x
+    piece_bottom = piece_matrix.nonzero()[0].max() + player_y
 
     window.addstr(
         10, 30, "Piece: " + repr(piece_matrix).replace("\n", " ")
@@ -112,6 +113,7 @@ def draw_debug(window, piece, player_x, player_y, rotation):
     window.addstr(11, 30, "Rotation: {}".format(rotation))
     window.addstr(12, 30, "Position = ({}, {})".format(player_x, player_y))
     window.addstr(13, 30, "X Bounds: [{}, {}]".format(left_piece_edge, right_piece_edge))
+    window.addstr(14, 30, "Y Bottom Edge: {}".format(piece_bottom))
 
 
 def collides_with_walls(piece_matrix, x):
@@ -119,6 +121,12 @@ def collides_with_walls(piece_matrix, x):
     right_piece_edge = piece_matrix.nonzero()[1].max() + x
 
     return left_piece_edge < 0 or right_piece_edge >= PLAY_WIDTH
+
+
+def collides_with_floor(piece_matrix, y):
+    piece_bottom = piece_matrix.nonzero()[0].max() + y
+
+    return piece_bottom >= PLAY_HEIGHT - 1
 
 
 def board_run(stdscr):
@@ -130,7 +138,7 @@ def board_run(stdscr):
     player_x, player_y = 0, 0
     rotation = 0
     current_piece = np.random.randint(7)
-    frames_per_drop = 15
+    frames_per_drop = 10
     current_frame_number = 0
     go = True
 
@@ -151,7 +159,11 @@ def board_run(stdscr):
             new_rotation = (new_rotation + 1) % len(tetrominoes[current_piece])
 
         # Check for collisions w/ walls
-        if not collides_with_walls(tetrominoes[current_piece][new_rotation], new_player_x):
+        new_piece = tetrominoes[current_piece][new_rotation]
+        if not (
+            collides_with_walls(new_piece, new_player_x) or
+            collides_with_floor(new_piece, player_y)
+        ):
             player_x = new_player_x
             rotation = new_rotation
 
@@ -161,10 +173,10 @@ def board_run(stdscr):
             current_frame_number = 0
             player_y = player_y + 1
 
-        if player_y == PLAY_HEIGHT - 4:  # TODO:  Actual Collision
-            player_x, player_y = 0, 0
-            current_piece = np.random.randint(7)
-            rotation = 0
+            if collides_with_floor(new_piece, player_y):
+                player_x, player_y = 0, 0
+                current_piece = np.random.randint(7)
+                rotation = 0
 
         # Render
         stdscr.clear()
