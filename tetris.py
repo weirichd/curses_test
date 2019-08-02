@@ -19,10 +19,10 @@ BORDER_COLOR = 8
 
 # Sprites
 tetrominoes = [
-    [np.array([[1, 1], [1, 1]])],  # 0
+    [np.array([[1, 1], [1, 1]])],  # O
     [  # I
-        np.array([[0, 0, 2, 0], [0, 0, 2, 0], [0, 0, 2, 0], [0, 0, 2, 0]]),
         np.array([[0, 0, 0, 0], [2, 2, 2, 2], [0, 0, 0, 0], [0, 0, 0, 0]]),
+        np.array([[0, 0, 2, 0], [0, 0, 2, 0], [0, 0, 2, 0], [0, 0, 2, 0]]),
     ],
     [  # T
         np.array([[0, 3, 0], [3, 3, 3], [0, 0, 0]]),
@@ -101,11 +101,24 @@ def draw_tetra(window, piece, position_x, position_y, rotation):
             )
 
 
-def draw_debug(window, piece, rotation):
+def draw_debug(window, piece, player_x, player_y, rotation):
+    piece_matrix = tetrominoes[piece][rotation]
+    left_piece_edge = piece_matrix.nonzero()[1].min() + player_x
+    right_piece_edge = piece_matrix.nonzero()[1].max() + player_x
+
     window.addstr(
-        10, 30, "Piece: " + repr(tetrominoes[piece][rotation]).replace("\n", " ")
+        10, 30, "Piece: " + repr(piece_matrix).replace("\n", " ")
     )
     window.addstr(11, 30, "Rotation: {}".format(rotation))
+    window.addstr(12, 30, "Position = ({}, {})".format(player_x, player_y))
+    window.addstr(13, 30, "X Bounds: [{}, {}]".format(left_piece_edge, right_piece_edge))
+
+
+def collides_with_walls(piece_matrix, x):
+    left_piece_edge = piece_matrix.nonzero()[1].min() + x
+    right_piece_edge = piece_matrix.nonzero()[1].max() + x
+
+    return left_piece_edge < 0 or right_piece_edge >= PLAY_WIDTH
 
 
 def board_run(stdscr):
@@ -117,24 +130,30 @@ def board_run(stdscr):
     player_x, player_y = 0, 0
     rotation = 0
     current_piece = np.random.randint(7)
-    frames_per_drop = 10
+    frames_per_drop = 15
     current_frame_number = 0
-
     go = True
 
     while go:
         # Update
+        new_player_x = player_x
+        new_rotation = rotation
 
         # Player Input
         c = stdscr.getch()
         if c == ord("q"):
             go = False
         if c == curses.KEY_LEFT:
-            player_x = max(0, player_x - 1)  # TODO:  Actual Collision
+            new_player_x = new_player_x - 1
         if c == curses.KEY_RIGHT:
-            player_x = min(PLAY_WIDTH - 4, player_x + 1)  # TODO:  Actual Collision
+            new_player_x = new_player_x + 1
         if c == curses.KEY_UP:
-            rotation = (rotation + 1) % len(tetrominoes[current_piece])
+            new_rotation = (new_rotation + 1) % len(tetrominoes[current_piece])
+
+        # Check for collisions w/ walls
+        if not collides_with_walls(tetrominoes[current_piece][new_rotation], new_player_x):
+            player_x = new_player_x
+            rotation = new_rotation
 
         # Advance Game State
         current_frame_number = current_frame_number + 1
@@ -152,7 +171,7 @@ def board_run(stdscr):
 
         draw_boarder(stdscr)
         draw_tetra(stdscr, current_piece, player_x, player_y, rotation)
-        draw_debug(stdscr, current_piece, rotation)
+        draw_debug(stdscr, current_piece, player_x, player_y, rotation)
 
         stdscr.refresh()
 
